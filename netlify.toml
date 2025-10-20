@@ -1,0 +1,25 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  environment = { NODE_VERSION = "18" }
+
+# Redirect all routes to index.html for SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Optional: headers for security and caching
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Notes:
+# - Set the following environment variables in Netlify's Site settings -> Build & deploy -> Environment
+#   VITE_SUPABASE_URL: your Supabase project URL
+#   VITE_SUPABASE_ANON_KEY: your Supabase anon public key
+# - If you want preview deploys to use a different command, edit the build settings on Netlify UI.
