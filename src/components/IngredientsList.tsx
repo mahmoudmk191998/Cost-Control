@@ -18,9 +18,10 @@ interface IngredientsListProps {
   ingredients: Ingredient[];
   onDeleteIngredient: (id: string) => void;
   onUpdateIngredient: (ingredient: Ingredient) => void;
+  onEditIngredient?: (ingredient: Ingredient) => void;
 }
 
-export const IngredientsList = ({ ingredients, onDeleteIngredient, onUpdateIngredient }: IngredientsListProps) => {
+export const IngredientsList = ({ ingredients, onDeleteIngredient, onUpdateIngredient, onEditIngredient }: IngredientsListProps) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   if (ingredients.length === 0) {
@@ -60,14 +61,25 @@ export const IngredientsList = ({ ingredients, onDeleteIngredient, onUpdateIngre
                     </span>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setDeleteId(ingredient.id)}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 flex-shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEditIngredient && onEditIngredient(ingredient)}
+                    className="h-8 w-8"
+                    title="تعديل"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteId(ingredient.id)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>

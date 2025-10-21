@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,16 +11,30 @@ interface IngredientFormProps {
   onAddIngredient: (ingredient: Ingredient) => void;
   ingredients: Ingredient[];
   onUpdateIngredient: (ingredient: Ingredient) => void;
+  // optional external editing ingredient (from parent list)
+  editingIngredient?: Ingredient | null;
+  onCancelEdit?: () => void;
 }
 
 const UNITS = ["كجم", "جرام", "لتر", "ملليلتر", "قطعة", "علبة", "كيس"];
 
-export const IngredientForm = ({ onAddIngredient, ingredients, onUpdateIngredient }: IngredientFormProps) => {
+export const IngredientForm = ({ onAddIngredient, ingredients, onUpdateIngredient, editingIngredient = null, onCancelEdit }: IngredientFormProps) => {
   const [name, setName] = useState("");
   const [cost, setCost] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("جرام");
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Sync when parent passes an editing ingredient
+  useEffect(() => {
+    if (editingIngredient) {
+      setName(editingIngredient.name)
+      setCost(editingIngredient.cost.toString())
+      setQuantity(editingIngredient.quantity.toString())
+      setUnit(editingIngredient.unit)
+      setEditingId(editingIngredient.id)
+    }
+  }, [editingIngredient])
 
   const handleEdit = (ingredient: Ingredient) => {
     setName(ingredient.name);
@@ -64,6 +78,7 @@ export const IngredientForm = ({ onAddIngredient, ingredients, onUpdateIngredien
     setName("");
     setCost("");
     setQuantity("");
+    setUnit("جرام")
   };
 
   const handleCancel = () => {
@@ -71,6 +86,8 @@ export const IngredientForm = ({ onAddIngredient, ingredients, onUpdateIngredien
     setName("");
     setCost("");
     setQuantity("");
+    setUnit("جرام")
+    if (onCancelEdit) onCancelEdit()
   };
 
   return (

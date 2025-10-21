@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, ChefHat, Eye } from "lucide-react";
+import { Trash2, ChefHat, Eye, Edit } from "lucide-react";
 import { Recipe } from "@/types";
 import { useState } from "react";
 import {
@@ -24,9 +24,10 @@ interface RecipesListProps {
   recipes: Recipe[];
   onDeleteRecipe: (id: string) => void;
   onUpdateRecipe: (recipe: Recipe) => void;
+  onEditRecipe?: (recipe: Recipe) => void;
 }
 
-export const RecipesList = ({ recipes, onDeleteRecipe, onUpdateRecipe }: RecipesListProps) => {
+export const RecipesList = ({ recipes, onDeleteRecipe, onUpdateRecipe, onEditRecipe }: RecipesListProps) => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -67,6 +68,16 @@ export const RecipesList = ({ recipes, onDeleteRecipe, onUpdateRecipe }: Recipes
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
+                    {onEditRecipe && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEditRecipe(recipe)}
+                        title="تعديل الوصفة"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"

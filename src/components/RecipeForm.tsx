@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input as UiInput } from "@/components/ui/input";
 import { ChefHat, Plus, X, Edit } from "lucide-react";
 import { Ingredient, Recipe, RecipeIngredient } from "@/types";
 import { toast } from "sonner";
@@ -13,6 +14,9 @@ interface RecipeFormProps {
   recipes: Recipe[];
   onAddRecipe: (recipe: Recipe) => void;
   onUpdateRecipe: (recipe: Recipe) => void;
+  // optional external editing recipe passed from parent
+  editingRecipe?: Recipe | null;
+  onCancelEdit?: () => void;
 }
 
 const UNITS = ["كجم", "جرام", "لتر", "ملليلتر", "قطعة", "علبة", "كيس"];
@@ -28,7 +32,7 @@ const convertToGrams = (value: number, unit: string): number => {
   }
 };
 
-export const RecipeForm = ({ ingredients, recipes, onAddRecipe, onUpdateRecipe }: RecipeFormProps) => {
+export const RecipeForm = ({ ingredients, recipes, onAddRecipe, onUpdateRecipe, editingRecipe, onCancelEdit }: RecipeFormProps) => {
   const [recipeName, setRecipeName] = useState("");
   const [selectedIngredients, setSelectedIngredients] = useState<RecipeIngredient[]>([]);
   const [numberOfPortions, setNumberOfPortions] = useState("");
@@ -42,12 +46,29 @@ export const RecipeForm = ({ ingredients, recipes, onAddRecipe, onUpdateRecipe }
     ...recipes.map(rec => ({ ...rec, type: 'recipe' as const }))
   ];
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Clear search when an item is selected so next open starts fresh
+  useEffect(() => {
+    if (selectedItemId) setSearchQuery("");
+  }, [selectedItemId]);
+
   const handleEdit = (recipe: Recipe) => {
     setRecipeName(recipe.name);
     setSelectedIngredients(recipe.ingredients);
     setNumberOfPortions(recipe.numberOfPortions.toString());
     setEditingId(recipe.id);
   };
+
+  // Sync when parent requests editing a recipe
+  useEffect(() => {
+    if (editingRecipe) {
+      setRecipeName(editingRecipe.name);
+      setSelectedIngredients(editingRecipe.ingredients);
+      setNumberOfPortions(editingRecipe.numberOfPortions.toString());
+      setEditingId(editingRecipe.id);
+    }
+  }, [editingRecipe]);
 
   const handleAddIngredient = () => {
     if (!selectedItemId || !selectedQuantity) {
@@ -125,6 +146,7 @@ export const RecipeForm = ({ ingredients, recipes, onAddRecipe, onUpdateRecipe }
     if (editingId) {
       onUpdateRecipe(recipe);
       setEditingId(null);
+      if (onCancelEdit) onCancelEdit();
     } else {
       onAddRecipe(recipe);
     }
@@ -171,35 +193,71 @@ export const RecipeForm = ({ ingredients, recipes, onAddRecipe, onUpdateRecipe }
             <div className="grid grid-cols-1 gap-2">
               <div className="space-y-1.5">
                 <Label className="text-xs">اختر مكون أو وصفة</Label>
-                <Select value={selectedItemId} onValueChange={setSelectedItemId}>
+                <Select value={selectedItemId} onValueChange={(val: string) => {
+                  // ignore header markers and the no-results marker so they don't become a real selection
+                  if (val === 'ingredients-header' || val === 'recipes-header' || val === '__no_results_marker') {
+                    setSelectedItemId('')
+                    return
+                  }
+                  setSelectedItemId(val)
+                }}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="اختر مكون أو وصفة" />
                   </SelectTrigger>
                   <SelectContent>
-                    {ingredients.length > 0 && (
-                      <>
-                        <SelectItem value="ingredients-header" disabled>
-                          --- المكونات ---
-                        </SelectItem>
-                        {ingredients.map((ing) => (
-                          <SelectItem key={ing.id} value={ing.id}>
-                            {ing.name} ({ing.costPerUnit.toFixed(2)} ج.م/{ing.unit})
-                          </SelectItem>
-                        ))}
-                      </>
-                    )}
-                    {recipes.length > 0 && (
-                      <>
-                        <SelectItem value="recipes-header" disabled>
-                          --- الوصفات ---
-                        </SelectItem>
-                        {recipes.map((rec) => (
-                          <SelectItem key={rec.id} value={rec.id}>
-                            {rec.name} ({rec.costPerPortion.toFixed(2)} ج.م/حصة)
-                          </SelectItem>
-                        ))}
-                      </>
-                    )}
+                    {/* Search input to filter ingredients and recipes */}
+                    <div className="p-2">
+                      <UiInput
+                        placeholder="ابحث عن مكون أو وصفة..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+
+                    {(() => {
+                      const q = searchQuery.trim().toLowerCase();
+                      const filteredIngredients = ingredients.filter((ing) => ing.name.toLowerCase().includes(q));
+                      const filteredRecipes = recipes.filter((rec) => rec.name.toLowerCase().includes(q));
+
+                      return (
+                        <>
+                          {filteredIngredients.length > 0 && (
+                            <>
+                              <SelectItem value="ingredients-header" disabled>
+                                --- المكونات ---
+                              </SelectItem>
+                              {filteredIngredients.map((ing) => (
+                                <SelectItem key={ing.id} value={ing.id}>
+                                  {ing.name} ({ing.costPerUnit.toFixed(2)} ج.م/{ing.unit})
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
+
+                          {filteredRecipes.length > 0 && (
+                            <>
+                              <SelectItem value="recipes-header" disabled>
+                                --- الوصفات ---
+                              </SelectItem>
+                              {filteredRecipes.map((rec) => (
+                                <SelectItem key={rec.id} value={rec.id}>
+                                  {rec.name} ({rec.costPerPortion.toFixed(2)} ج.م/حصة)
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
+
+                          {filteredIngredients.length === 0 && filteredRecipes.length === 0 && (
+                            // Render a focusable marker item so Radix can focus something when opening.
+                            // We treat this value specially in the onValueChange handler above.
+                            <SelectItem value="__no_results_marker">
+                              لا توجد نتائج
+                            </SelectItem>
+                          )}
+                        </>
+                      );
+                    })()}
                   </SelectContent>
                 </Select>
               </div>

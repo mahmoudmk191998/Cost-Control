@@ -18,6 +18,8 @@ import { fetchIngredientsForUser, createIngredientForUser, updateIngredientForUs
 const Index = () => {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+  const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
   const { session } = useAuth()
   const navigate = useNavigate()
   const [signOutLoading, setSignOutLoading] = useState(false)
@@ -130,6 +132,8 @@ const Index = () => {
       try {
         await updateIngredientForUser(session?.user?.id, ingredient)
         setIngredients(ingredients.map(ing => ing.id === ingredient.id ? ingredient : ing))
+        // clear any open ingredient editing UI
+        setEditingIngredient(prev => (prev && prev.id === ingredient.id ? null : prev))
         toast.success('تم تحديث المكون بنجاح!')
       } catch (err: any) {
         console.error('update ingredient error', err)
@@ -143,6 +147,8 @@ const Index = () => {
       const updated = await updateRecipeForUser(session?.user?.id, recipe)
       setRecipes(recipes.map(rec => rec.id === updated.id ? updated : rec))
       toast.success('تم تحديث الوصفة بنجاح!')
+      // clear editing state if we were editing this recipe
+      setEditingRecipe(prev => (prev && prev.id === updated.id ? null : prev));
     } catch (err: any) {
       console.error('update recipe error', err)
       toast.error('فشل تحديث الوصفة')
@@ -194,11 +200,14 @@ const Index = () => {
                 onAddIngredient={handleAddIngredient} 
                 ingredients={ingredients}
                 onUpdateIngredient={handleUpdateIngredient}
+                editingIngredient={editingIngredient}
+                onCancelEdit={() => setEditingIngredient(null)}
               />
               <IngredientsList
                 ingredients={ingredients}
                 onDeleteIngredient={handleDeleteIngredient}
                 onUpdateIngredient={handleUpdateIngredient}
+                onEditIngredient={(ing) => setEditingIngredient(ing)}
               />
             </div>
           </TabsContent>
@@ -210,11 +219,14 @@ const Index = () => {
                 recipes={recipes}
                 onAddRecipe={handleAddRecipe}
                 onUpdateRecipe={handleUpdateRecipe}
+                editingRecipe={editingRecipe}
+                onCancelEdit={() => setEditingRecipe(null)}
               />
               <RecipesList 
                 recipes={recipes} 
                 onDeleteRecipe={handleDeleteRecipe}
                 onUpdateRecipe={handleUpdateRecipe}
+                onEditRecipe={(r) => setEditingRecipe(r)}
               />
             </div>
           </TabsContent>
