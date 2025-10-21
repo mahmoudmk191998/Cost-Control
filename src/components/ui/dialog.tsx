@@ -32,24 +32,40 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
     <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        // Mobile-first: full screen, scrollable. On sm+ screens use centered modal styles.
-        "fixed inset-0 z-50 grid w-full h-full overflow-auto bg-background p-4 duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
-        "sm:inset-auto sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:w-full sm:max-w-lg sm:h-auto sm:overflow-visible sm:p-6 sm:rounded-lg sm:shadow-lg",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          // Container fills viewport and centers the inner panel; allows scrolling when content is tall
+          "fixed inset-0 z-50 flex items-center justify-center p-4 overflow-auto duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
+          className,
+        )}
+        {...props}
+      >
+        {/* Inner panel: add margins on mobile so edges are visible, rounded corners and shadow for contrast */}
+        <div
+          className="relative w-full sm:max-w-lg bg-background rounded-lg shadow-lg overflow-hidden"
+          style={{ maxHeight: 'calc(100vh - 2rem)' }}
+        >
+          {/* inner scrollable area with safe-area padding */}
+          <div
+            className="overflow-auto"
+            style={{
+              padding: '1rem',
+              paddingTop: `calc(env(safe-area-inset-top, 0px) + 1rem)`,
+              paddingBottom: `calc(env(safe-area-inset-bottom, 0px) + 1rem)`,
+            }}
+          >
+            {children}
+          </div>
+
+          <DialogPrimitive.Close className="absolute right-3 top-3 rounded-sm opacity-90 bg-muted/60 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogPrimitive.Close>
+        </div>
+      </DialogPrimitive.Content>
+    </DialogPortal>
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
