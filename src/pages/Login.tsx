@@ -101,18 +101,18 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-xl shadow-md transition-smooth">
+    <div className="min-h-[70vh] flex items-center justify-center px-4 py-8">
+      <Card className="w-full max-w-xl shadow-md transition-smooth px-3 sm:px-6">
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <img src="/pwa-192x192.png" alt="app icon" className="h-12 w-12 rounded-md shadow-sm" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3">
+              <img src="/pwa-192x192.png" alt="app icon" className="h-10 w-10 rounded-md shadow-sm" />
               <div>
-                <CardTitle>مرحباً بك</CardTitle>
-                <CardDescription>سجّل الدخول لحفظ وصفاتك ومقاديرك والوصول إليها من أي مكان</CardDescription>
+                <CardTitle className="text-lg">مرحباً بك</CardTitle>
+                <CardDescription className="text-sm">سجّل الدخول لحفظ وصفاتك ومقاديرك والوصول إليها من أي مكان</CardDescription>
               </div>
             </div>
-            <div className="text-sm text-muted-foreground">تطبيق الوصفات</div>
+            <div className="text-sm text-muted-foreground hidden sm:block">تطبيق الوصفات</div>
           </div>
         </CardHeader>
 
