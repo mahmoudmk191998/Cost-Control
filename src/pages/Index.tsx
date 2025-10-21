@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Calculator } from "lucide-react";
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,8 @@ const Index = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
+  const ingredientFormRef = useRef<HTMLDivElement | null>(null)
+  const recipeFormRef = useRef<HTMLDivElement | null>(null)
   const { session } = useAuth()
   const navigate = useNavigate()
   const [signOutLoading, setSignOutLoading] = useState(false)
@@ -196,37 +198,56 @@ const Index = () => {
 
           <TabsContent value="ingredients" className="flex-1 overflow-auto m-0">
             <div className="grid lg:grid-cols-2 gap-3 h-full">
-              <IngredientForm 
-                onAddIngredient={handleAddIngredient} 
-                ingredients={ingredients}
-                onUpdateIngredient={handleUpdateIngredient}
-                editingIngredient={editingIngredient}
-                onCancelEdit={() => setEditingIngredient(null)}
-              />
+              <div ref={ingredientFormRef}>
+                <IngredientForm 
+                  onAddIngredient={handleAddIngredient} 
+                  ingredients={ingredients}
+                  onUpdateIngredient={handleUpdateIngredient}
+                  editingIngredient={editingIngredient}
+                  onCancelEdit={() => setEditingIngredient(null)}
+                />
+              </div>
               <IngredientsList
                 ingredients={ingredients}
                 onDeleteIngredient={handleDeleteIngredient}
                 onUpdateIngredient={handleUpdateIngredient}
-                onEditIngredient={(ing) => setEditingIngredient(ing)}
+                onEditIngredient={(ing) => {
+                  // set editing then scroll into view and focus
+                  setEditingIngredient(ing)
+                  setTimeout(() => {
+                    ingredientFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    const input = ingredientFormRef.current?.querySelector('input') as HTMLInputElement | null
+                    input?.focus()
+                  }, 60)
+                }}
               />
             </div>
           </TabsContent>
 
           <TabsContent value="recipes" className="flex-1 overflow-auto m-0">
             <div className="grid lg:grid-cols-2 gap-3 h-full">
-              <RecipeForm
-                ingredients={ingredients}
-                recipes={recipes}
-                onAddRecipe={handleAddRecipe}
-                onUpdateRecipe={handleUpdateRecipe}
-                editingRecipe={editingRecipe}
-                onCancelEdit={() => setEditingRecipe(null)}
-              />
+              <div ref={recipeFormRef}>
+                <RecipeForm
+                  ingredients={ingredients}
+                  recipes={recipes}
+                  onAddRecipe={handleAddRecipe}
+                  onUpdateRecipe={handleUpdateRecipe}
+                  editingRecipe={editingRecipe}
+                  onCancelEdit={() => setEditingRecipe(null)}
+                />
+              </div>
               <RecipesList 
                 recipes={recipes} 
                 onDeleteRecipe={handleDeleteRecipe}
                 onUpdateRecipe={handleUpdateRecipe}
-                onEditRecipe={(r) => setEditingRecipe(r)}
+                onEditRecipe={(r) => {
+                  setEditingRecipe(r)
+                  setTimeout(() => {
+                    recipeFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    const input = recipeFormRef.current?.querySelector('input') as HTMLInputElement | null
+                    input?.focus()
+                  }, 60)
+                }}
               />
             </div>
           </TabsContent>

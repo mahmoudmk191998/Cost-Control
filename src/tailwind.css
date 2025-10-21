@@ -1,0 +1,7 @@
+/* stylelint-disable at-rule-no-unknown */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* This file intentionally contains only Tailwind entrypoints so editors/linters
+   that don't understand Tailwind won't flag the rest of the project's CSS. */
